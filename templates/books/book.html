@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ book.name }}{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="header">
+            <h1><a href="/books">Каталог</a></h1>
+        </div>
+        <div class="row">
+            <div class="book col-md-4">
+                    <h2>{{ book.name }}</h2>
+                    <p>Автор: {{ book.author }}</p>
+                    <p>Дата публикации: {{ book.pub_date }}</p>
+            </div>
+        </div>
+        <div class="row">
+        <div class="col-md-2">
+            <p> <a href="/books/{{ prev_date }}"</a>{{ prev_date }}</p>
+        </div>
+        <div class="col-md-4">
+            <p><a href="/books/{{ next_date }}"</a>{{ next_date }}</p>
+        </div>
+         </div>
+    </div>
+{% endblock %}

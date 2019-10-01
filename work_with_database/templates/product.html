@@ -1,17 +1,23 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}{{ phone.name }}{% endblock %}
+{% load template_filters %}
+ 
+{% block title %}Телефон{% endblock %}
 {% block content %}
     <div class="container">
         <div class="header">
-            <h1>{{ phone.name }}</h1>
+            <h1>Телефон</h1>
         </div>
         <div class="content">
-            <p><b>Стоимость: {{ phone.price }} р.</b></p>
-            <p>Дата релиза: {{ phone.release_date }} </p>
-            <p>Наличие LTE: {{ phone.lte_exists }} </p>
-            <img src={{ phone.image }} height="360" width="200"></img>
+            {% if status == '200' %}
+                <h2>{{ phone.name }}</h2>
+                <p class="price">Стоимость: {{ phone.price }}р.</p>
+                <img src={{ phone.image }} alt={{ phone.name }}>
+                <p>Дата выпуска: {{ phone.release_date }}</p>
+                <p>Наличие LTE: {{ phone.lte_exists|bool_replace }}</p>
+            {% else %}
+                <p>{{ phone }}</p>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

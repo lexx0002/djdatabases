@@ -1,55 +1,48 @@
-from django.shortcuts import render
-from books.models import Book
+from django.views.generic import ListView
+from django.shortcuts import get_object_or_404
+from .models import Book
 from datetime import datetime
-from books.converters import PubDateConverter
-from django.core.paginator import Paginator
 
-date_converter = PubDateConverter()
 
-def books_view(request):
-    template = 'books/books_list.html'
-    book_set = Book.objects.all()
-    for book in book_set:
-        book.pub_date =  date_converter.to_url(book.pub_date)
-    context = {'books' : book_set}
-    print(book_set)
-
-    return render(request, template, context)
-
-def view_book(request, date):
-    template = 'books/book.html'
-    date = date_converter.to_url(date)
-    all_books = Book.objects.all()
-    date_list = []
-    for book in all_books:
-        date_list.append(date_converter.to_url(book.pub_date))
-    pagination = Paginator(date_list, 1)
-    book = Book.objects.get(pub_date=date)
-    book.pub_date = date_converter.to_url(book.pub_date)
-
-    if date_list.index(book.pub_date) <= 0:
-        current_page = 1
-    else:
-        current_page = date_list.index(book.pub_date) + 1
+class BookListView(ListView):
+    model = Book
+    template_name = 'books/book_list.html'
+    context_object_name = 'books'
     
-    page_object = pagination.page(current_page)
 
-    if page_object.has_next():
-        next_date = pagination.page(page_object.next_page_number()).object_list[0]
-    else:
-        next_date = ''
+class BookDateView(ListView):
+    model = Book
+    template_name = 'books/book_date.html'
+    context_object_name = 'books'
 
-    if page_object.has_previous():
-        prev_date = pagination.page(page_object.previous_page_number()).object_list[0]
-    else:
-        prev_date = ''
+    def get_queryset(self):
+        self.name = get_object_or_404(Book, pub_date=self.kwargs['pub_date'])
+        return Book.objects.filter(name=self.name)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    context = {
-        'book' : book,
-        'next_date' : next_date,
-        'prev_date' : prev_date
-        }
+        published_date = context['books'][0].pub_date
+        
+        try:
+            next_date = Book.objects.filter(
+                    pub_date__gt=published_date
+                ).order_by(
+                    'pub_date'
+                ).first().pub_date
+        except AttributeError:
+            next_date = published_date
+        
+        try:
+            prev_date = Book.objects.filter(
+                    pub_date__lt=published_date
+                ).order_by(
+                    '-pub_date'
+                ).first().pub_date
+        except AttributeError:
+            prev_date = published_date
 
-    return render(request, template, context)
-            
+        context['next'] = datetime.strftime(next_date, "%Y-%m-%d")
+        context['previous'] = datetime.strftime(prev_date, "%Y-%m-%d")
+
+        return context
